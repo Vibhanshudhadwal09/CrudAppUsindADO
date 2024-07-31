@@ -17,16 +17,27 @@ namespace CrudAppUsindADO.Controllers
 
         public IActionResult Create()
         {
-            return View();
+            EmployeeDbContext context = new EmployeeDbContext();
+            var subjects=context.GetAllSubjects();
+            var viewModel = new EmployeeCreateViewModel
+            {
+                Employee = new Employee(),
+                AllSubjects = subjects
+            };
+            return View(viewModel);
         }
 
         [HttpPost]
-        public IActionResult Create(Employee emp)
+        public IActionResult Create(EmployeeCreateViewModel viewModel)
         {
             EmployeeDbContext context = new EmployeeDbContext();
-            bool check = context.AddEmployee(emp);
+            bool check = context.AddEmployee(viewModel.Employee);
             if (check)
             {
+                foreach (var SubjectId in viewModel.SelectedSubjectIds)
+                {
+                    context.AssignSubjectToEmployee(viewModel.Employee.Id, SubjectId);
+                }
                 TempData["InsertMessage"] = "Data has been inserted ";
                 ModelState.Clear();
                 return RedirectToAction("Index");
@@ -81,7 +92,7 @@ namespace CrudAppUsindADO.Controllers
         {
             EmployeeDbContext context = new EmployeeDbContext();
             bool check = context.DeleteEmployee(id);
-            if (check)
+            if (check==true)
             {
                 TempData["UpdateMessage"] = "Data has been updated";
                 return RedirectToAction("Index");

@@ -58,12 +58,66 @@ namespace CrudAppUsindADO.Models
                             return false;
                         }
                     }
+
+                    
                 }
             }
             catch (Exception ex)
             {
                 return false;
             }
+        }
+        public List<Subject> GetAllSubjects()
+        {
+            var subjects = new List<Subject>();
+            using (SqlConnection connection = new SqlConnection(cs))
+            {
+                string query = "SELECT SubjectId,SubjectName from Subjects";
+                SqlCommand cmd = new SqlCommand(query, connection);
+                connection.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var subject = new Subject
+                        {
+                            SubjectID = Convert.ToInt32(reader["SubjectID"]),
+                            SubjectName = reader["SubjectName"].ToString(),
+                        };
+                        subjects.Add(subject);
+                    }
+                }
+                return subjects;
+            }
+        }
+
+        public bool AssignSubjectToEmployee(int employeeId,int subjectId)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(cs))
+                {
+                    using (SqlCommand cmd = new SqlCommand("INSERT INTO EmployeeSubjects (EmployeeId,SubjectId) VALUES (@EmployeeID,@SubjectId)", connection))
+                    {
+                        cmd.Parameters.AddWithValue("@EmployeeID", employeeId);
+                        cmd.Parameters.AddWithValue("@SubjectId", subjectId);
+                        connection.Open();
+                        int i = cmd.ExecuteNonQuery();
+                        connection.Close();
+                        if (i > 0)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+
+
+                    }
+                }
+            }
+            catch (Exception ex) { return false; }
         }
 
         public bool UpdateEmployee(Employee emp)
@@ -103,11 +157,18 @@ namespace CrudAppUsindADO.Models
         {
             using (SqlConnection connection = new SqlConnection(cs))
             {
+                connection.Open();
+                using (SqlCommand cmd = new SqlCommand("DELETE FROM EmployeeSubjects WHERE EmployeeId=@EmployeeId",connection)) 
+                {
+                    cmd.Parameters.AddWithValue("@EmployeeId", id);
+                    cmd.ExecuteNonQuery();
+                }
                 using (SqlCommand cmd = new SqlCommand("DELETE FROM employees WHERE ID=@ID", connection))
                 {
                     cmd.Parameters.AddWithValue("@ID", id);
-                    connection.Open();
+
                     int i = cmd.ExecuteNonQuery();
+                    connection.Close();
                     if (i > 0)
                     {
                         return true;
@@ -117,7 +178,9 @@ namespace CrudAppUsindADO.Models
                         return false;
                     }
                 }
+                
             }
+
         }
         public List<(string EmployeeName, string SubjectName)> GetEmployeeSubjects()
         {
