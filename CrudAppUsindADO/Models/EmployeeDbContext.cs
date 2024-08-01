@@ -3,6 +3,7 @@ using System;
 using System.Data.SqlClient;
 using System.Data;
 using System.Configuration;
+using System.Transactions;
 namespace CrudAppUsindADO.Models
 {
     public class EmployeeDbContext
@@ -59,7 +60,7 @@ namespace CrudAppUsindADO.Models
                         }
                     }
 
-                    
+
                 }
             }
             catch (Exception ex)
@@ -91,7 +92,7 @@ namespace CrudAppUsindADO.Models
             }
         }
 
-        public bool AssignSubjectToEmployee(int employeeId,int subjectId)
+        public bool AssignSubjectToEmployee(int employeeId, int subjectId)
         {
             try
             {
@@ -158,7 +159,7 @@ namespace CrudAppUsindADO.Models
             using (SqlConnection connection = new SqlConnection(cs))
             {
                 connection.Open();
-                using (SqlCommand cmd = new SqlCommand("DELETE FROM EmployeeSubjects WHERE EmployeeId=@EmployeeId",connection)) 
+                using (SqlCommand cmd = new SqlCommand("DELETE FROM EmployeeSubjects WHERE EmployeeId=@EmployeeId", connection))
                 {
                     cmd.Parameters.AddWithValue("@EmployeeId", id);
                     cmd.ExecuteNonQuery();
@@ -178,10 +179,13 @@ namespace CrudAppUsindADO.Models
                         return false;
                     }
                 }
-                
+
             }
 
         }
+
+
+
         public List<(string EmployeeName, string SubjectName)> GetEmployeeSubjects()
         {
             var results = new List<(string EmployeeName, string SubjectName)>();
@@ -215,6 +219,5 @@ namespace CrudAppUsindADO.Models
 
             return results;
         }
-
     }
 }
