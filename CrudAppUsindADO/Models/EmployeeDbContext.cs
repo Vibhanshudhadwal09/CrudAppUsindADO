@@ -25,6 +25,8 @@ namespace CrudAppUsindADO.Models
                 emp.Name = dr.GetValue(1).ToString();
                 emp.City = dr.GetValue(2).ToString();
                 emp.Pincode = Convert.ToInt32(dr.GetValue(3).ToString());
+                emp.Email = dr.GetValue(4).ToString();
+                emp.ImagePath = dr.GetValue(7).ToString();
 
                 EmployeeList.Add(emp);
             }
@@ -40,13 +42,23 @@ namespace CrudAppUsindADO.Models
             {
                 using (SqlConnection connection = new SqlConnection(cs))
                 {
-                    using (SqlCommand cmd = new SqlCommand("INSERT INTO employees (ID, Name, City, Pincode) VALUES (@ID, @Name, @City, @Pincode)", connection))
+
+
+                    if (EmployeeExist(emp.Id))
+                    {
+                        return false;
+                    }
+
+                    using (SqlCommand cmd = new SqlCommand("INSERT INTO employees (ID, Name, City, Pincode,Email,Password,Image,Salt) VALUES (@ID, @Name, @City, @Pincode,@Email,@Password,@Image,@Salt)", connection))
                     {
                         cmd.Parameters.AddWithValue("@ID", emp.Id);
-                        cmd.Parameters.AddWithValue("@Name", emp.Name);
-                        cmd.Parameters.AddWithValue("@City", emp.City);
+                        cmd.Parameters.AddWithValue("@Name", emp.Name.Trim());
+                        cmd.Parameters.AddWithValue("@City", emp.City.Trim());
                         cmd.Parameters.AddWithValue("@Pincode", emp.Pincode);
-
+                        cmd.Parameters.AddWithValue("@Email", emp.Email.Trim());
+                        cmd.Parameters.AddWithValue("@Password", emp.HashPassword);
+                        cmd.Parameters.AddWithValue("@Salt", emp.Salt);
+                        cmd.Parameters.AddWithValue("@Image", emp.ImagePath);
                         connection.Open();
                         int i = cmd.ExecuteNonQuery();
                         connection.Close();
@@ -127,12 +139,13 @@ namespace CrudAppUsindADO.Models
             {
                 using (SqlConnection connection = new SqlConnection(cs))
                 {
-                    using (SqlCommand cmd = new SqlCommand("UPDATE employees SET Name=@Name,City=@City,PinCode=@Pincode WHERE ID=@ID", connection))
+                    using (SqlCommand cmd = new SqlCommand("UPDATE employees SET Name=@Name,City=@City,PinCode=@Pincode,Email=@Email WHERE ID=@ID", connection))
                     {
                         cmd.Parameters.AddWithValue("@ID", emp.Id);
                         cmd.Parameters.AddWithValue("@Name", emp.Name);
                         cmd.Parameters.AddWithValue("@City", emp.City);
                         cmd.Parameters.AddWithValue("@Pincode", emp.Pincode);
+                        cmd.Parameters.AddWithValue("@Email", emp.Email);
 
                         connection.Open();
                         int i = cmd.ExecuteNonQuery();
@@ -158,12 +171,19 @@ namespace CrudAppUsindADO.Models
         {
             using (SqlConnection connection = new SqlConnection(cs))
             {
-                connection.Open();
+               connection.Open();
                 using (SqlCommand cmd = new SqlCommand("DELETE FROM EmployeeSubjects WHERE EmployeeId=@EmployeeId", connection))
                 {
                     cmd.Parameters.AddWithValue("@EmployeeId", id);
                     cmd.ExecuteNonQuery();
                 }
+               
+                using (SqlCommand cmd=new SqlCommand("Delete From TeacherStudents  where StudentId=@StudentId ",connection))
+                {
+                    cmd.Parameters.AddWithValue("@StudentId", id);
+                    cmd.ExecuteNonQuery();
+                }
+               
                 using (SqlCommand cmd = new SqlCommand("DELETE FROM employees WHERE ID=@ID", connection))
                 {
                     cmd.Parameters.AddWithValue("@ID", id);
@@ -219,5 +239,47 @@ namespace CrudAppUsindADO.Models
 
             return results;
         }
+
+        public bool DeleteEmployeeSubjects(int employeeId)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(cs))
+                {
+                    using (SqlCommand cmd = new SqlCommand("DELETE FROM EmployeeSubjects WHERE EmployeeId=@EmployeeId", connection))
+                    {
+                        cmd.Parameters.AddWithValue("@EmployeeId", employeeId);
+                        connection.Open();
+                        cmd.ExecuteNonQuery();
+                        connection.Close();
+                    }
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+
+
+        public bool EmployeeExist(int id)
+        {
+            string query = "Select COUNT(*) FROM employees WHERE ID=@ID";
+            using(SqlConnection connection = new SqlConnection(cs))
+            {
+                using(SqlCommand cmd = new SqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@ID", id);
+                    connection.Open();
+                    int count=(int)cmd.ExecuteScalar();
+                    connection.Close();
+                    return count > 0;
+                }
+            }
+        }
+
+
     }
 }

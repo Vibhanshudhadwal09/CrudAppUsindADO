@@ -1,37 +1,57 @@
-﻿@model CrudAppUsindADO.Models.Teachers
+﻿@model CrudAppUsindADO.Models.TeacherCreateViewModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Teacher";
 }
 
-<h1>Edit</h1>
+<h1>Edit Teacher</h1>
 
-<h4>Teachers</h4>
+<h4>Teacher</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <input type="hidden" asp-for="Teachers.TeacherId" />
+
             <div class="form-group">
-                <label asp-for="TeacherId" class="control-label"></label>
-                <input asp-for="TeacherId" class="form-control" />
-                <span asp-validation-for="TeacherId" class="text-danger"></span>
+                <label asp-for="Teachers.TeacherName" class="control-label"></label>
+                <input asp-for="Teachers.TeacherName" class="form-control" />
+                <span asp-validation-for="Teachers.TeacherName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Teachers.TeacherPhone" class="control-label"></label>
+                <input asp-for="Teachers.TeacherPhone" class="form-control" />
+                <span asp-validation-for="Teachers.TeacherPhone" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Teachers.Address" class="control-label"></label>
+                <input asp-for="Teachers.Address" class="form-control" />
+                <span asp-validation-for="Teachers.Address" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="TeacherName" class="control-label"></label>
-                <input asp-for="TeacherName" class="form-control" />
-                <span asp-validation-for="TeacherName" class="text-danger"></span>
+                <label asp-for="Teachers.Email" class="control-label"></label>
+                <input asp-for="Teachers.Email" class="form-control" />
+                <span asp-validation-for="Teachers.Email" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="TeacherPhone" class="control-label"></label>
-                <input asp-for="TeacherPhone" class="form-control" />
-                <span asp-validation-for="TeacherPhone" class="text-danger"></span>
+                <label>Students</label>
+                <div>
+                    @for (int i = 0; i < Model.AllStudents.Count; i++)
+                    {
+                        <div>
+                            <input type="checkbox" name="SelectedEmployeeIds" value="@Model.AllStudents[i].Id"
+                            @(Model.SelectedEmployeeIds.Contains(Model.AllStudents[i].Id) ? "checked" : "") />
+                            <label>@Model.AllStudents[i].Name</label>
+                        </div>
+                    }
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" class="form-control" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
+
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
@@ -44,5 +64,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

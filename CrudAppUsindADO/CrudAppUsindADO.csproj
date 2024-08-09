@@ -11,4 +11,9 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Employees\EmployeeImages\" />
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,7 @@
 ﻿using CrudAppUsindADO.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace CrudAppUsindADO.Controllers
 {
@@ -28,6 +30,14 @@ namespace CrudAppUsindADO.Controllers
         [HttpPost]
         public IActionResult Create(TeacherCreateViewModel viewModel)
         {
+
+            string salt = GenerateSalt();
+            string hashedPassword = HashPasswords(viewModel.Teachers.Password, salt);
+
+
+            viewModel.Teachers.HashPassword= hashedPassword;
+            viewModel.Teachers.Salt= salt;
+
             TeacherDbContext teacherDbContext = new TeacherDbContext();
             bool check = teacherDbContext.AddTeacher(viewModel.Teachers);
             if (check ) 
@@ -43,23 +53,47 @@ namespace CrudAppUsindADO.Controllers
         }
         public IActionResult Edit(int id)
         {
-            TeacherDbContext teacherDbContext=new TeacherDbContext();
+            TeacherDbContext teacherDbContext = new TeacherDbContext();
             var teacher = teacherDbContext.GetTeachers().Where(x => x.TeacherId == id).SingleOrDefault();
-            return View(teacher);
+            var students = teacherDbContext.GetAllStudents();
+            var selectedStudentIds = teacherDbContext.GetTeacherStudents()
+                                                     .Where(x => x.TeachersName == teacher.TeacherName)
+                                                     .Select(x => x.StudentId)
+                                                     .ToList();
+
+            var viewModel = new TeacherCreateViewModel
+            {
+                Teachers = teacher,
+                AllStudents = students,
+                SelectedEmployeeIds = selectedStudentIds
+            };
+
+            return View(viewModel);
         }
 
+
         [HttpPost]
-        public IActionResult Edit(Teachers teachers)
+        [HttpPost]
+        public IActionResult Edit(TeacherCreateViewModel viewModel)
         {
             TeacherDbContext teacherDbContext = new TeacherDbContext();
-            bool check = teacherDbContext.EditTeacher(teachers);
-            if(check == true)
+            bool check = teacherDbContext.EditTeacher(viewModel.Teachers);
+            if (check)
             {
+               
+                teacherDbContext.RemoveStudentsFromTeacher(viewModel.Teachers.TeacherId);
+
+                foreach (var studentId in viewModel.SelectedEmployeeIds)
+                {
+                    teacherDbContext.AssignStudentToTeacher(viewModel.Teachers.TeacherId, studentId);
+                }
+
                 ModelState.Clear();
                 return RedirectToAction("Index");
             }
-            return View(teachers);
+            return View(viewModel);
         }
+
         public IActionResult Delete(int id)
         {
             TeacherDbContext teacherDbContext = new TeacherDbContext();
@@ -92,7 +126,27 @@ namespace CrudAppUsindADO.Controllers
             };
             return View(viewModel);
         }
+        //Hasing & Salting code 
 
+        private static string GenerateSalt(int size = 16)
+        {
+            byte[] salt = new byte[size];
+            using (var rng = new RNGCryptoServiceProvider())
+            {
+                rng.GetBytes(salt);
+            }
+            return Convert.ToBase64String(salt);
+        }
+
+        private static string HashPasswords(string password, string salt)
+        {
+            var saltedPassword = password + salt;
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(saltedPassword));
+                return Convert.ToBase64String(bytes);
+            }
+        }
 
     }
 }

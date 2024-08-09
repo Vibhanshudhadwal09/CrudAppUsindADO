@@ -1,50 +1,100 @@
 ﻿@model CrudAppUsindADO.Models.TeacherCreateViewModel
 
-<h1>Create</h1>
+@{
+    ViewData["Title"] = "Create";
+}
 
-<h4>Teachers</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Teachers.TeacherId" class="control-label"></label>
-                <input asp-for="Teachers.TeacherId" class="form-control" />
-                <span asp-validation-for="Teachers.TeacherId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Teachers.TeacherName" class="control-label"></label>
-                <input asp-for="Teachers.TeacherName" class="form-control" />
-                <span asp-validation-for="Teachers.TeacherName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Teachers.TeacherPhone" class="control-label"></label>
-                <input asp-for="Teachers.TeacherPhone" class="form-control" />
-                <span asp-validation-for="Teachers.TeacherPhone" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Teachers.Address" class="control-label"></label>
-                <input asp-for="Teachers.Address" class="form-control" />
-                <span asp-validation-for="Teachers.Address" class="text-danger"></span>
-            </div>
-            <h4>Select Students</h4>
-            <div class="form-group">
-                @foreach (var student in Model.AllStudents)
-                {
-                    <div class="form-check">
-                        <input type="checkbox" name="SelectedEmployeeIds" value="@student.Id" class="form-check-input" />
-                        <label class="form-check-label">@student.Name</label>
-                    </div>
-                }
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="container mt-5 bg-image">
+    <div class="bg-primary p-3 rounded mb-4 text-center text-white">
+        <h1>Create Teacher</h1>
     </div>
-</div>
+    <hr />
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form asp-action="Create" id="teacherForm">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+                        <div class="form-group">
+                            <label asp-for="Teachers.TeacherId" class="control-label"></label>
+                            <input asp-for="Teachers.TeacherId" class="form-control" placeholder="Enter Teacher ID" />
+                            <span asp-validation-for="Teachers.TeacherId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Teachers.TeacherName" class="control-label"></label>
+                            <input asp-for="Teachers.TeacherName" class="form-control" placeholder="Enter Teacher Name" />
+                            <span asp-validation-for="Teachers.TeacherName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Teachers.TeacherPhone" class="control-label">Phone number</label>
+                            <input asp-for="Teachers.TeacherPhone" class="form-control" type="number" pattern="\d{10}" title="Phone number must be exactly 10 digits" />
+                            <span asp-validation-for="Teachers.TeacherPhone" class="text-danger"></span>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label asp-for="Teachers.Address" class="control-label"></label>
+                            <textarea asp-for="Teachers.Address" class="form-control" placeholder="Enter Address"></textarea>
+                            <span asp-validation-for="Teachers.Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Teachers.Email" class="control-label"></label>
+                            <input asp-for="Teachers.Email" class="form-control" placeholder="Enter Email" />
+                            <span asp-validation-for="Teachers.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Teachers.Password" class="control-label"></label>
+                            <input asp-for="Teachers.Password" type="password" class="form-control" placeholder="Enter Password" />
+                            <span asp-validation-for="Teachers.Password" class="text-danger"></span>
+                        </div>
+
+                        <h4>Select Students</h4>
+                        <div class="form-group">
+                            @foreach (var student in Model.AllStudents)
+                            {
+                                <div class="form-check">
+                                    <input type="checkbox" id="StudentCheckbox_@student.Id" name="SelectedEmployeeIds" value="@student.Id" class="form-check-input" />
+                                    <label class="form-check-label" for="StudentCheckbox_@student.Id">@student.Name</label>
+                                </div>
+                            }
+                            <span id="error-message" class="text-danger" style="display: none;">Please select at least one student.</span>
+                        </div>
+
+                        <div class="form-group text-center">
+                            <input type="submit" value="Create" class="btn btn-primary btn-lg" />
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
+    <script>
+        document.getElementById('teacherForm').addEventListener('submit', function (event) {
+            var checkboxes = document.querySelectorAll('input[name="SelectedEmployeeIds"]:checked');
+            var errorMessage = document.getElementById('error-message');
+
+            if (checkboxes.length === 0) {
+                event.preventDefault();
+                errorMessage.style.display = 'block';
+            } else {
+                errorMessage.style.display = 'none';
+            }
+        });
+    </script>

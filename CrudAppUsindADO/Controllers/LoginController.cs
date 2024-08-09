@@ -20,8 +20,9 @@ namespace CrudAppUsindADO.Controllers
             var user=context.GetUserByEmail(model.Email);
             if (user != null && user.Password == model.Password && user.Username==model.Username) 
             {
-                RedirectToAction("Index", "Login");
                 ViewBag.Message = "Login successful!";
+                return RedirectToAction("Index", "Home");
+
 
             }
             else

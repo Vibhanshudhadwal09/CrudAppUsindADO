@@ -1,0 +1,59 @@
+﻿@model CrudAppUsindADO.Models.StudentLogin
+
+@{
+    ViewData["Title"] = "Valid";
+}
+
+<div class="container mt-5 bg-image">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h1>Login Here</h1>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-center mb-4">Enter with Valid Mail</h4>
+                    <form asp-action="Valid" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="form-group">
+                            <label asp-for="SelectedRoleId" class="control-label">Roles:</label>
+                            <select asp-for="SelectedRoleId" asp-items="Model.Roles" class="form-control"></select>
+                            <span asp-validation-for="SelectedRoleId" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Email" class="control-label">Email:</label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Password" class="control-label">Password:</label>
+                            <input asp-for="Password" class="form-control" type="password" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mt-4">
+                            <input type="submit" value="Login" class="btn btn-primary btn-block" />
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8 text-center">
+            <hr />
+            <h1 class="display-4">Hello, Welcome to the School Management</h1>
+        </div>
+    </div>
+</div>
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-info mt-4">@ViewBag.Message</div>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

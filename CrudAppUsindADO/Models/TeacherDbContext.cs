@@ -21,8 +21,9 @@ namespace CrudAppUsindADO.Models
                 Teachers teacher = new Teachers();
                 teacher.TeacherId = Convert.ToInt32(reader.GetValue(0).ToString());
                 teacher.TeacherName = reader.GetValue(1).ToString();
-                teacher.TeacherPhone = Convert.ToInt32(reader.GetValue(2).ToString());
+                teacher.TeacherPhone = reader.GetValue(2).ToString();
                 teacher.Address = reader.GetValue(3).ToString();
+                teacher.Email = reader.GetValue(5).ToString();
 
                 TeacherList.Add(teacher);
             }
@@ -36,12 +37,15 @@ namespace CrudAppUsindADO.Models
             {
                 using (SqlConnection connection = new SqlConnection(cs))
                 {
-                    using (SqlCommand cmd = new SqlCommand("INSERT INTO Teachers (TeacherId,TeacherName,TeacherPhone,TeacherAddress) VALUES (@TeacherId,@TeacherName,@TeacherPhone,@TeacherAddress)", connection))
+                    using (SqlCommand cmd = new SqlCommand("INSERT INTO Teachers (TeacherId,TeacherName,TeacherPhone,TeacherAddress,Email,Password,Salt) VALUES (@TeacherId,@TeacherName,@TeacherPhone,@TeacherAddress,@Email,@Password,@Salt)", connection))
                     {
                         cmd.Parameters.AddWithValue("@TeacherId", teachers.TeacherId);
-                        cmd.Parameters.AddWithValue("@TeacherName", teachers.TeacherName);
-                        cmd.Parameters.AddWithValue("@TeacherPhone", teachers.TeacherPhone);
-                        cmd.Parameters.AddWithValue("@TeacherAddress", teachers.Address);
+                        cmd.Parameters.AddWithValue("@TeacherName", teachers.TeacherName.Trim());
+                        cmd.Parameters.AddWithValue("@TeacherPhone", teachers.TeacherPhone.Trim());
+                        cmd.Parameters.AddWithValue("@TeacherAddress", teachers.Address.Trim());
+                        cmd.Parameters.AddWithValue("@Email", teachers.Email.Trim());
+                        cmd.Parameters.AddWithValue("@Password", teachers.HashPassword);
+                        cmd.Parameters.AddWithValue("@Salt", teachers.Salt);
 
                         connection.Open();
                         int i = cmd.ExecuteNonQuery();
@@ -70,12 +74,13 @@ namespace CrudAppUsindADO.Models
             {
                 using (SqlConnection connection = new SqlConnection(cs))
                 {
-                    using (SqlCommand cmd = new SqlCommand("UPDATE Teachers SET TeacherName=@TeacherName,TeacherPhone=@TeacherPhone,TeacherAddress=@TeacherAddress WHERE TeacherID=@TeacherID", connection))
+                    using (SqlCommand cmd = new SqlCommand("UPDATE Teachers SET TeacherName=@TeacherName,TeacherPhone=@TeacherPhone,TeacherAddress=@TeacherAddress,Email=@Email WHERE TeacherID=@TeacherID", connection))
                     {
                         cmd.Parameters.AddWithValue("@TeacherId", teachers.TeacherId);
-                        cmd.Parameters.AddWithValue("@TeacherName", teachers.TeacherName);
-                        cmd.Parameters.AddWithValue("@TeacherPhone", teachers.TeacherPhone);
-                        cmd.Parameters.AddWithValue("@TeacherAddress", teachers.Address);
+                        cmd.Parameters.AddWithValue("@TeacherName", teachers.TeacherName.Trim());
+                        cmd.Parameters.AddWithValue("@TeacherPhone", teachers.TeacherPhone.Trim());
+                        cmd.Parameters.AddWithValue("@TeacherAddress", teachers.Address.Trim());
+                        cmd.Parameters.AddWithValue("@Email", teachers.Email.Trim());
                         connection.Open();
                         int i = cmd.ExecuteNonQuery();
                         connection.Close();
@@ -120,36 +125,38 @@ namespace CrudAppUsindADO.Models
             }
         }
 
-        public List<(string TeachersName, string StudentName)> GetTeacherStudents()
+        public List<(int StudentId, string TeachersName, string StudentName)> GetTeacherStudents()
         {
-            var result = new List<(string TeachersName, string StudentName)>();
+            var result = new List<(int StudentId, string TeachersName, string StudentName)>();
             using (SqlConnection connection = new SqlConnection(cs))
             {
-                string query = @" SELECT 
-                Employees.Name AS StudentName,
-                Teachers.TeacherName AS TeacherName
-                FROM 
-                TeacherStudents
-                JOIN 
-                Employees ON TeacherStudents.StudentId = Employees.Id
-                JOIN 
-                Teachers ON TeacherStudents.TeacherId = Teachers.TeacherId;";
+                string query = @"SELECT 
+                         Employees.ID AS StudentId,
+                         Employees.Name AS StudentName,
+                         Teachers.TeacherName AS TeacherName
+                         FROM 
+                         TeacherStudents
+                         JOIN 
+                         Employees ON TeacherStudents.StudentId = Employees.ID
+                         JOIN 
+                         Teachers ON TeacherStudents.TeacherId = Teachers.TeacherId;";
                 SqlCommand cmd = new SqlCommand(query, connection);
                 connection.Open();
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
+                        int StudentId = Convert.ToInt32(reader["StudentId"]);
                         string TeacherName = reader["TeacherName"].ToString();
                         string StudentName = reader["StudentName"].ToString();
-                        result.Add((TeacherName, StudentName));
+                        result.Add((StudentId, TeacherName, StudentName));
                     }
-
-
                 }
             }
             return result;
         }
+
+
 
         public List<Employee> GetAllStudents()
         {
@@ -208,5 +215,27 @@ namespace CrudAppUsindADO.Models
 
 
         }
+        public bool RemoveStudentsFromTeacher(int teacherId)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(cs))
+                {
+                    using (SqlCommand cmd = new SqlCommand("DELETE FROM TeacherStudents WHERE TeacherId = @TeacherId", connection))
+                    {
+                        cmd.Parameters.AddWithValue("@TeacherId", teacherId);
+                        connection.Open();
+                        cmd.ExecuteNonQuery();
+                        connection.Close();
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
     }
 }
